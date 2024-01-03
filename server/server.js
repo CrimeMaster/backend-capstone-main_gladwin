@@ -1,15 +1,40 @@
 const express = require('express');
+const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
+const dotenv = require('dotenv')
+dotenv.config()
+const cors = require('cors')
+const authorization = require("./middleware/authorization");
+const authRoutes = require("./routes/auth");
+const jobRoutes = require("./routes/job");
 
-const app = express();
+const app = express()
+const port = process.env.port || 9001
 
-app.get('/', (req, res) => res.send('Home Page Route'));
+app.use(cors())
+app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.json())
 
-app.get('/about', (req, res) => res.send('About Page Route'));
+//Routes
+app.use("api/auth", authRoutes);
+app.use("api/job", jobRoutes);
 
-app.get('/portfolio', (req, res) => res.send('Portfolio Page Route'));
+app.get('/health', (req, res) => {
+    res.json({
+        status:200,
+        message: 'server is running',
+    })
+})
 
-app.get('/contact', (req, res) => res.send('Contact Page Route'));
+app.get("/page", authorization, (req, res) => {
+    res.json({
+      status: "active",
+      message: "running",
+    });
+  });
 
-const port = process.env.PORT || 3000;
-
-app.listen(port, () => console.log(`Server running on ${port}, http://localhost:${port}`));
+app.listen(process.env.port, () => {
+    mongoose.connect('mongodb+srv://admin123:admin123@cluster0.xy5mwr8.mongodb.net/?retryWrites=true&w=majority')
+    .then(() => console.log(`Server running on http://localhost:${process.env.port}`))
+    .catch(error => console.log(error))
+})
